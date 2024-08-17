@@ -81,11 +81,17 @@ class PyHatchBabyRestAsync(object):
         return self.device
 
     async def refresh_data(self):
+        print("Refresh data started.")
         self.device = await self._ensure_scan()
 
+        print("Starting client.")
         async with BleakClient(self.device) as client:
-            raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
+            try:
+                raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
+            except Exception as e:
+                print(e)
 
+        print("Checking response.")
         response = [hex(x) for x in raw_char_read]
 
         # Make sure the data is where we think it is
