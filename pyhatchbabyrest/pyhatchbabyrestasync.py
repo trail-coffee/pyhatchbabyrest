@@ -171,13 +171,14 @@ class PyHatchBabyRestAsync(object):
 
 
 async def connect(
+    logger: Logger,
     address_or_ble_device: Union[str, BLEDevice, None] = None,
     scanner: Optional[BleakScanner] = None,
     scan_now: bool = True,
     refresh_now: bool = True,
 ) -> PyHatchBabyRestAsync:
     rest = PyHatchBabyRestAsync(
-        None,
+        logger,
         address_or_ble_device,
         scanner=scanner,
         scan_now=False,
