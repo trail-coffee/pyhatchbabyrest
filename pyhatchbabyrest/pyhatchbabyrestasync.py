@@ -5,6 +5,7 @@ from logging import Logger
 
 from bleak import BleakClient
 from bleak import BleakScanner
+from bleak import BleakError
 from bleak.backends.device import BLEDevice
 
 from .constants import BT_MANUFACTURER_ID
@@ -89,10 +90,17 @@ class PyHatchBabyRestAsync(object):
 
         self.logger.debug("Starting client.")
         async with BleakClient(self.device) as client:
-            try:
-                raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
-            except Exception as e:
-                self.logger.error(e)
+            if await client.is_connected():
+                try:
+                    raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
+                except BleakError as e:
+                    self.logger.error(e)
+            else:
+                try:
+                    await client.connect()
+                    raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
+                except BleakError as e:
+                    self.logger.error(e)
 
         self.logger.debug("Checking response.")
         response = [hex(x) for x in raw_char_read]
@@ -169,6 +177,7 @@ async def connect(
     refresh_now: bool = True,
 ) -> PyHatchBabyRestAsync:
     rest = PyHatchBabyRestAsync(
+        None,
         address_or_ble_device,
         scanner=scanner,
         scan_now=False,
