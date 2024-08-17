@@ -1,6 +1,7 @@
 import asyncio
 from typing import Optional
 from typing import Union
+from logging import Logger
 
 from bleak import BleakClient
 from bleak import BleakScanner
@@ -17,11 +18,13 @@ class PyHatchBabyRestAsync(object):
 
     def __init__(
         self,
+        logger: Logger,
         address_or_ble_device: Union[str, BLEDevice, None] = None,
         scanner: Optional[BleakScanner] = None,
         scan_now: bool = True,
         refresh_now: bool = True,
     ):
+        self.logger = logger
         self.scanner = scanner
 
         if isinstance(address_or_ble_device, BLEDevice):
@@ -81,17 +84,17 @@ class PyHatchBabyRestAsync(object):
         return self.device
 
     async def refresh_data(self):
-        print("Refresh data started.")
+        self.logger.debug("Refreshing data.")
         self.device = await self._ensure_scan()
 
-        print("Starting client.")
+        self.logger.debug("Starting client.")
         async with BleakClient(self.device) as client:
             try:
                 raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
             except Exception as e:
-                print(e)
+                self.logger.error(e)
 
-        print("Checking response.")
+        self.logger.debug("Checking response.")
         response = [hex(x) for x in raw_char_read]
 
         # Make sure the data is where we think it is
