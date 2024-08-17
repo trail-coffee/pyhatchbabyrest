@@ -90,7 +90,7 @@ class PyHatchBabyRestAsync(object):
 
         self.logger.debug("Starting client.")
         async with BleakClient(self.device) as client:
-            if await client.is_connected():
+            if client.is_connected:
                 try:
                     raw_char_read = await client.read_gatt_char(CHAR_FEEDBACK)
                 except BleakError as e:
